@@ -1,0 +1,17 @@
+{
+  "name": "promisestore",
+  "version": "1.0.0",
+  "description": "A simple flux-style store, written in TypeScript that uses promises",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sanford Robinson Gifford",
+  "license": "SEE LICENSE IN LICENSE",
+  "dependencies": {
+    "typescript": "^1.7.5"
+  },
+  "devDependencies": {
+    "ts-loader": "^0.7.2",
+    "webpack": "^1.12.9"
+  }
+}

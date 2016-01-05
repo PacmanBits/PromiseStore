@@ -6,7 +6,7 @@ There are two ways to use PromiseStore
 
 ### Traditional Function/Property Use
 
-```javascript
+```typescript
 import Store from "./store";
 
 Store.childChanged("app.ui", function(value: any, path: string) {
@@ -24,7 +24,7 @@ var newValue = Store.get("app.ui.input");
 
 ### Chaining
 
-```javascript
+```typescript
 import Store from "./store";
 
 Store("app.ui")

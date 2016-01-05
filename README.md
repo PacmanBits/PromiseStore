@@ -41,7 +41,7 @@ var newValue = Store("app.ui.input")
 ```
 
 ## Why Not Both?
-PromiseStore comes ready to let you use bothy out-of-the-box.  Think chaining is too flashy when you only need a single function?  No problem!  Callbacks as a second parameter too clumsy?  Forget'm.
+PromiseStore comes ready to let you use both property and chaining methodds out-of-the-box.  Think chaining is too flashy when you only need a single function?  No problem!  Callbacks as a second parameter too clumsy?  Forget'm.
 
 ```javascript
 import Store from "./store";

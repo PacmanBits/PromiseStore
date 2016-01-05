@@ -61,7 +61,7 @@ Store.set("app.ui.input", 10);
 ```
 
 ## Functions
-TypeScript has four main functions, all of which are accessible either as a property of the `Store` object, or in the chain returned by `Store` when used as a function.  When accessed from the chain, the first argument (always `path: string`) is passed to the `Store` function instead.
+PromiseStore has four main functions, all of which are accessible either as a property of the `Store` object, or in the chain returned by `Store` when used as a function.  When accessed from the chain, the first argument (always `path: string`) is passed to the `Store` function instead.
 
 ##### `get(path: string) => any`
 Gets the value of the node specified by `path`.  `get` is the only function that does not continue the chain from `Store()`.

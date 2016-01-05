@@ -59,3 +59,18 @@ var newValue = Store("app.ui.input")
 
 Store.set("app.ui.input", 10);
 ```
+
+## Functions
+TypeScript has four main functions, all of which are accessible either as a property of the `Store` object, or in the chain returned by `Store` when used as a function.  When accessed from the chain, the first argument (always `path: string`) is passed to the `Store` function instead.
+
+##### `get(path: string) => any`
+Gets the value of the node specified by `path`.  `get` is the only function that does not continue the chain from `Store()`.
+
+##### `set(path: string, value: any) => void`
+Sets the value of the node specified by `path` to `value`.  Triggers appropriate listeners.  Even nodes with children can have a value.
+
+##### `changed(path: string, callback: (value: any) => void) => void`
+Calls `callback` whenever the node at `path` is changed.  `callback` is passed the new value of the node.
+
+##### `childChanged(path: string, callback: (value: any, path: string) => void) => void`
+Calls `callback` whenever a child of the node at `path` is changed.  Will **not** be called if the node at `path` itself is changed.  `callback` is passed both the value and path of the changed node.

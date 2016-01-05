@@ -1,6 +1,6 @@
 
 interface IStore {
-	(path: string): IStorePromises;
+	(path: string): IStoreChain;
 
 	get:          (path: string) => any;
 	set:          (path: string, value: any) => void;
@@ -19,10 +19,10 @@ interface IChildListener {
 // We've used the extended versions of IListener
 // and IChildListener here so intellisense shows
 // developers the correct signature
-interface IStorePromises {
-	changed:      (callback: (value: any) => void) => IStorePromises;
-	childChanged: (callback: (value: any, path: string) => void) => IStorePromises;
-	set:          (value: any) => IStorePromises;
+interface IStoreChain {
+	changed:      (callback: (value: any) => void) => IStoreChain;
+	childChanged: (callback: (value: any, path: string) => void) => IStoreChain;
+	set:          (value: any) => IStoreChain;
 	get:          () => any;
 }
 
@@ -36,31 +36,31 @@ interface IStoreNode {
 
 var root = createNode("", null, null);
 
-var Store: IStore = <IStore>function(path: string): IStorePromises {
+var Store: IStore = <IStore>function(path: string): IStoreChain {
 	// Because we don't know what functions the user
-	// will be accessing from the promise, we must
+	// will be accessing from the chain, we must
 	// always create the node - even if it's not
 	// found; even if they're only using get.
 	var node: IStoreNode = getNodeAtPath(path, true);
-	var promises: IStorePromises = {
+	var chain: IStoreChain = {
 		get : function() {
 			return getNodeValue(node);
 		},
-		set : function(value: any): IStorePromises {
+		set : function(value: any): IStoreChain {
 			setNodeValue(node, path, value);
-			return promises;
+			return chain;
 		},
-		changed : function(callback: IListener): IStorePromises {
+		changed : function(callback: IListener): IStoreChain {
 			listenToNode(node, callback);
-			return promises;
+			return chain;
 		},
 		childChanged: function(callback: IChildListener) {
 			listenToNodeChildren(node, callback);
-			return promises;
+			return chain;
 		}
 	}
 
-	return promises;
+	return chain;
 };
 
 Store.set = function(path: string, value: any): void {

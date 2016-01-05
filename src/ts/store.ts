@@ -1,8 +1,11 @@
 
 interface IStore {
-	get: (path: string) => any;
-	set: (path: string, value: any) => void;
-	listen: (path: string) => IListenPromises;
+	(path: string): IStorePromises;
+
+	get:          (path: string) => any;
+	set:          (path: string, value: any) => void;
+	changed:      (path: string, callback: IListener) => void;
+	childChanged: (path: string, callback: IChildListener) => void;
 }
 
 interface IListener {
@@ -16,55 +19,91 @@ interface IChildListener {
 // We've used the extended versions of IListener
 // and IChildListener here so intellisense shows
 // developers the correct signature
-interface IListenPromises {
-	changed: (callback: (value: any) => void) => IListenPromises;
-	childChanged: (callback: (value: any, path: string) => void) => IListenPromises;
+interface IStorePromises {
+	changed:      (callback: (value: any) => void) => IStorePromises;
+	childChanged: (callback: (value: any, path: string) => void) => IStorePromises;
+	set:          (value: any) => IStorePromises;
+	get:          () => any;
 }
 
 interface IStoreNode { 
-	parent: IStoreNode;
-	children: { [name: string]: IStoreNode };
-	data: any;
-	selfListeners: IListener[];
+	parent:         IStoreNode;
+	children:       { [name: string]: IStoreNode };
+	data:           any;
+	selfListeners:  IListener[];
 	childListeners: IChildListener[];
 }
 
 var root = createNode("", null, null);
 
-var Store: IStore = {
-	get: function(path: string): any {
-		var node: IStoreNode = getNodeAtPath(path);
-
-		if (node)
-			return node.data;
-		else
-			return null;
-	},
-
-	set: function(path: string, value: any): void {
-		var node: IStoreNode = getNodeAtPath(path, true);
-		node.data = value;
-
-		callListeners(node, path);
-	},
-
-	listen: function(path: string): IListenPromises {
-		var node: IStoreNode = getNodeAtPath(path, true);
-
-		var promises: IListenPromises = {
-			changed: function(callback: IListener){
-				node.selfListeners.push(callback);
-				return promises;
-			},
-			childChanged: function(callback: IChildListener) {
-				node.childListeners.push(callback);
-				return promises;
-			}
+var Store: IStore = <IStore>function(path: string): IStorePromises {
+	// Because we don't know what functions the user
+	// will be accessing from the promise, we must
+	// always create the node - even if it's not
+	// found; even if they're only using get.
+	var node: IStoreNode = getNodeAtPath(path, true);
+	var promises: IStorePromises = {
+		get : function() {
+			return getNodeValue(node);
+		},
+		set : function(value: any): IStorePromises {
+			setNodeValue(node, path, value);
+			return promises;
+		},
+		changed : function(callback: IListener): IStorePromises {
+			listenToNode(node, callback);
+			return promises;
+		},
+		childChanged: function(callback: IChildListener) {
+			listenToNodeChildren(node, callback);
+			return promises;
 		}
-
-		return promises;
 	}
+
+	return promises;
 };
+
+Store.set = function(path: string, value: any): void {
+	var node: IStoreNode = getNodeAtPath(path, true);
+	setNodeValue(node, path, value);
+};
+
+Store.get = function(path: string): any {
+	var node: IStoreNode = getNodeAtPath(path);
+	return getNodeValue(node);
+};
+
+Store.changed = function(path: string, callback: IListener): void {
+	var node: IStoreNode = getNodeAtPath(path, true);
+	listenToNode(node, callback);
+};
+
+Store.childChanged = function(path: string, callback: IListener): void {
+	var node: IStoreNode = getNodeAtPath(path, true);
+	listenToNodeChildren(node, callback);
+};
+
+
+function getNodeValue(node: IStoreNode): any {
+	if (node)
+		return node.data;
+	else
+		return null;
+}
+
+function setNodeValue(node: IStoreNode, path: string, value: any): void {
+	node.data = value;
+
+	callListeners(node, path);
+}
+
+function listenToNode(node: IStoreNode, callback: IListener): void {
+	node.selfListeners.push(callback);
+}
+
+function listenToNodeChildren(node: IStoreNode, callback: IChildListener): void {
+	node.childListeners.push(callback);
+}
 
 function getNodeAtPath(path: string, createIfNotFound: boolean = false): IStoreNode {
 	if (!path)
@@ -98,11 +137,11 @@ function splitPath(path: string): string[] {
 
 function createNode(name: string, parent: IStoreNode, data: any): IStoreNode {
 	var node: IStoreNode = {
-		parent: parent,
-		childListeners: new Array<IChildListener>(),
-		selfListeners: new Array<IListener>(),
-		children: {},
-		data: data
+		parent         : parent,
+		childListeners : new Array<IChildListener>(),
+		selfListeners  : new Array<IListener>(),
+		children       : {},
+		data           : data
 	};
 
 	if(parent)
